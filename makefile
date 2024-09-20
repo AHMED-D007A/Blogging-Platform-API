@@ -3,3 +3,6 @@ build:
 
 run: build
 	@./bin/bpapi
+
+test:
+	@go test -v ./...

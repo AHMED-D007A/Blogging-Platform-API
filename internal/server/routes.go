@@ -6,6 +6,9 @@ import (
 )
 
 func RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/posts", blog.HandleAllBlogs).Methods("GET")
-	router.HandleFunc("/posts/{id}", blog.HandleOneBlog).Methods("GET")
+	router.HandleFunc("/posts", blog.CreateBlog).Methods("POST")
+	router.HandleFunc("/posts/{id}", blog.CreateBlog).Methods("PUT")
+	router.HandleFunc("/posts/{id}", blog.CreateBlog).Methods("DELETE")
+	router.HandleFunc("/posts", blog.GetAllBlogs).Methods("GET")
+	router.HandleFunc("/posts/{id}", blog.GetBlog).Methods("GET")
 }
