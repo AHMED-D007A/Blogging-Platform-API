@@ -1,11 +1,10 @@
-package api
+package server
 
 import (
 	"database/sql"
 	"log"
 	"net/http"
 
-	"github.com/AHMED-D007A/Blogging-Platform-API/service/blog"
 	"github.com/gorilla/mux"
 )
 
@@ -23,15 +22,10 @@ func NewAPIServer(addr string, db *sql.DB) *APIServer {
 
 func (s *APIServer) Run() error {
 	router := mux.NewRouter()
-	subrouter := router.PathPrefix("api/v1/").Subrouter()
+	subrouter := router.PathPrefix("/api/v1/").Subrouter()
 
-	s.handleRoutes(subrouter)
+	RegisterRoutes(subrouter)
 
 	log.Printf("Server is up and running on port: %v", s.addr)
 	return http.ListenAndServe(s.addr, router)
-}
-
-func (s *APIServer) handleRoutes(router *mux.Router) {
-	blogHandler := blog.NewHandler()
-	blogHandler.RegisterRoutes(router)
 }
