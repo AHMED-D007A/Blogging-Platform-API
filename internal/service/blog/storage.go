@@ -2,6 +2,7 @@ package blog
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/lib/pq"
@@ -30,14 +31,48 @@ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 	}
 }
 
-func (s *BlogStorage) CreateBlog(data Blog) {
+func (s *BlogStorage) CreateBlog(data Blog) error {
 	query := `INSERT INTO blogs(title, content, category, tags, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6)`
 	_, err := s.db.Exec(query, data.Title, data.Content, data.Category, pq.Array(data.Tags), data.CreatedAt, data.UpdatedAt)
 	if err != nil {
-		log.Print(err.Error())
+		return err
 	}
+	return nil
 }
 
-func (s *BlogStorage) UpdateBlog() {}
+func (s *BlogStorage) UpdateBlog(newData Blog, id string) error {
+	query := `SELECT * FROM blogs WHERE id=$1`
+	rows, err := s.db.Query(query, id)
+	if err != nil {
+		return err
+	}
 
-func (s *BlogStorage) DeleteBlog() {}
+	var data Blog
+	if rows.Next() {
+		err = rows.Scan(&data.ID, &data.Title, &data.Content, &data.Category, pq.Array(&data.Tags), &data.CreatedAt, &data.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("not found")
+	}
+
+	data.Title = newData.Title
+	data.Content = newData.Content
+	data.Category = newData.Category
+	data.Tags = newData.Tags
+	data.UpdatedAt = newData.UpdatedAt
+
+	query = `UPDATE blogs SET title=$1, content=$2, category=$3, tags=$4, updated_at=$5 WHERE id=$6`
+
+	_, err = s.db.Exec(query, data.Title, data.Content, data.Category, pq.Array(data.Tags), data.UpdatedAt, data.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *BlogStorage) DeleteBlog(id string) error {
+	return nil
+}
