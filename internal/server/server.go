@@ -24,8 +24,17 @@ func (s *APIServer) Run() error {
 	router := mux.NewRouter()
 	subrouter := router.PathPrefix("/api/v1/").Subrouter()
 
-	RegisterRoutes(subrouter)
+	RegisterBlogRoutes(subrouter, s.db)
+
+	router.Use(logMW)
 
 	log.Printf("Server is up and running on port: %v", s.addr)
 	return http.ListenAndServe(s.addr, router)
+}
+
+func logMW(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s - %s (%s)", r.Method, r.URL.Path, r.RemoteAddr)
+		next.ServeHTTP(w, r)
+	})
 }
