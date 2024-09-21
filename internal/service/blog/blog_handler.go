@@ -86,6 +86,20 @@ func (bh *BlogHandler) UpdateBlogHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (bh *BlogHandler) DeleteBlogHandler(w http.ResponseWriter, r *http.Request) {
+	parm := mux.Vars(r)
+
+	err := bh.storage.DeleteBlog(parm["id"])
+	if err != nil {
+		if err.Error() == "not found" {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			log.Print(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
 }
 
 func (bh *BlogHandler) GetAllBlogsHandler(w http.ResponseWriter, r *http.Request) {}

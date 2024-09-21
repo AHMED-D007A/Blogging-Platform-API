@@ -74,5 +74,21 @@ func (s *BlogStorage) UpdateBlog(newData Blog, id string) error {
 }
 
 func (s *BlogStorage) DeleteBlog(id string) error {
+	query := `SELECT * FROM blogs WHERE id=$1`
+	rows, err := s.db.Query(query, id)
+	if err != nil {
+		return err
+	}
+
+	if rows.Next() {
+		query = `DELETE FROM blogs WHERE id=$1`
+		_, err = s.db.Exec(query, id)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("not found")
+	}
+
 	return nil
 }
