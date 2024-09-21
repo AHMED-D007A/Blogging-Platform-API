@@ -92,3 +92,48 @@ func (s *BlogStorage) DeleteBlog(id string) error {
 
 	return nil
 }
+
+func (s *BlogStorage) GetAllBlogs(term string) ([]Blog, error) {
+	var dataSlice []Blog
+	var query string
+	var rows *sql.Rows
+	var err error
+	if term == "" {
+		query = `SELECT * FROM blogs;`
+		rows, err = s.db.Query(query)
+	} else {
+		query = `SELECT * FROM blogs WHERE title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%' OR category ILIKE '%' || $1 || '%' OR '$1' = ANY(tags);`
+		rows, err = s.db.Query(query, term)
+	}
+	if err != nil {
+		return dataSlice, err
+	}
+	for rows.Next() {
+		var data Blog
+		err = rows.Scan(&data.ID, &data.Title, &data.Content, &data.Category, pq.Array(&data.Tags), &data.CreatedAt, &data.UpdatedAt)
+		if err != nil {
+			return dataSlice, err
+		}
+		dataSlice = append(dataSlice, data)
+	}
+	return dataSlice, nil
+}
+
+func (s *BlogStorage) GetBlog(id string) (Blog, error) {
+	query := `SELECT * FROM blogs WHERE id=$1`
+	rows, err := s.db.Query(query, id)
+	if err != nil {
+		return Blog{}, err
+	}
+
+	var data Blog
+	if rows.Next() {
+		err = rows.Scan(&data.ID, &data.Title, &data.Content, &data.Category, pq.Array(&data.Tags), &data.CreatedAt, &data.UpdatedAt)
+		if err != nil {
+			return Blog{}, err
+		}
+	} else {
+		return Blog{}, errors.New("not found")
+	}
+	return data, nil
+}

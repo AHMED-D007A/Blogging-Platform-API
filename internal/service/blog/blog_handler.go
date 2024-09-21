@@ -99,9 +99,50 @@ func (bh *BlogHandler) DeleteBlogHandler(w http.ResponseWriter, r *http.Request)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
-
 }
 
-func (bh *BlogHandler) GetAllBlogsHandler(w http.ResponseWriter, r *http.Request) {}
+func (bh *BlogHandler) GetAllBlogsHandler(w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
 
-func (bh *BlogHandler) GetBlogHandler(w http.ResponseWriter, r *http.Request) {}
+	data, err := bh.storage.GetAllBlogs(term)
+	if err != nil {
+		if err.Error() == "not found" {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			log.Print(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		responseData, err := json.Marshal(data)
+		if err != nil {
+			log.Print(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write(responseData)
+	}
+}
+
+func (bh *BlogHandler) GetBlogHandler(w http.ResponseWriter, r *http.Request) {
+	parm := mux.Vars(r)
+
+	data, err := bh.storage.GetBlog(parm["id"])
+	if err != nil {
+		if err.Error() == "not found" {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			log.Print(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		responseData, err := json.Marshal(data)
+		if err != nil {
+			log.Print(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write(responseData)
+	}
+}
